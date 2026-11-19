@@ -69,16 +69,23 @@
 
     * { box-sizing: border-box; }
 
-    #peek {
+    /* Page-flip peek: a straight 45deg fold from the top-right corner.
+       The wrapper casts the fold's shadow (filters run before masks, so it can't live on #peek). */
+    #peek-wrap {
       position: fixed;
       inset: 0;
       pointer-events: none;
+      filter: drop-shadow(-4px 4px 10px rgba(0, 0, 0, 0.22));
+      visibility: hidden;
+    }
+    #peek {
+      position: absolute;
+      inset: 0;
       background: linear-gradient(125deg, var(--alt-from) 0%, var(--alt-mid) 55%, var(--alt-to) 100%);
       --r: 0px;
-      --f: 200px;
-      -webkit-mask-image: radial-gradient(circle at 100% 0%, #000 max(0px, calc(var(--r) - var(--f))), transparent var(--r));
-              mask-image: radial-gradient(circle at 100% 0%, #000 max(0px, calc(var(--r) - var(--f))), transparent var(--r));
-      visibility: hidden;
+      --f: 1.5px;
+      -webkit-mask-image: linear-gradient(225deg, #000 max(0px, calc(var(--r) - var(--f))), transparent var(--r));
+              mask-image: linear-gradient(225deg, #000 max(0px, calc(var(--r) - var(--f))), transparent var(--r));
     }
 
     html, body { height: 100%; margin: 0; }
@@ -213,7 +220,7 @@
   </style>
 </head>
 <body>
-  <div id="peek" aria-hidden="true"></div>
+  <div id="peek-wrap" aria-hidden="true"><div id="peek"></div></div>
   <main>
     <button class="theme-toggle" id="theme-toggle" type="button"></button>
     <h1 class="name">Teo Tze Shuen</h1>
@@ -254,18 +261,21 @@
     // clicking floods the rest of the page, then the theme actually switches.
     const peek = document.getElementById('peek');
     let peekR = 0, peekTarget = 0, peekMode = 'idle', peekArmed = true; // idle | hover | fill
-    const diag = () => Math.hypot(innerWidth, innerHeight);
-    const feather = () => diag() * 0.2;
+    const peekWrap = document.getElementById('peek-wrap');
+    // Distances run along the 225deg gradient line: a point a px from the right and b px from the top
+    // sits (a + b) / sqrt(2) from the corner. diag() is the full length of that line.
+    const diag = () => (innerWidth + innerHeight) / Math.SQRT2;
+    const feather = () => 1.5;
     const toggleDist = () => {
       const b = toggle.getBoundingClientRect();
-      return Math.hypot(innerWidth - b.left, b.bottom); // farthest point of the text from the corner
+      return (innerWidth - b.left + b.bottom) / Math.SQRT2; // farthest point of the text from the corner
     };
 
     toggle.addEventListener('pointerenter', e => {
       if (e.pointerType === 'touch' || !peekArmed || peekMode === 'fill' || reduceMotion) return;
       peekMode = 'hover';
       // a small glow, just big enough to swallow the toggle text
-      peekTarget = Math.max(diag() * 0.1, toggleDist() * 1.5);
+      peekTarget = Math.max(diag() * 0.1, toggleDist() * 1.25);
     });
     toggle.addEventListener('pointerleave', () => {
       peekArmed = true;
@@ -289,9 +299,9 @@
         peekR = peekTarget = 0;
       }
       // the mask fades linearly to 0 at r, so the text is well covered once r is ~1.3x its distance
-      toggle.classList.toggle('consumed', peekMode !== 'idle' && peekR > toggleDist() * 1.3);
-      if (peekR < 0.5) { peek.style.visibility = 'hidden'; return; }
-      peek.style.visibility = 'visible';
+      toggle.classList.toggle('consumed', peekMode !== 'idle' && peekR > toggleDist() + 4);
+      if (peekR < 0.5) { peekWrap.style.visibility = 'hidden'; return; }
+      peekWrap.style.visibility = 'visible';
       peek.style.setProperty('--r', peekR.toFixed(1) + 'px');
       peek.style.setProperty('--f', f.toFixed(1) + 'px');
     };
