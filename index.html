@@ -5,16 +5,53 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Teo Tze Shuen</title>
   <meta name="description" content="Teo Tze Shuen" />
+  <meta name="color-scheme" content="light dark" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@1,6..72,400&display=swap" rel="stylesheet" />
+  <script>
+    // Apply saved theme before paint to avoid a flash.
+    try {
+      const saved = localStorage.getItem('theme');
+      if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved;
+    } catch (e) {}
+  </script>
   <style>
     :root {
       --bg-from: #ffffff;
       --bg-mid: #fff1ec;
       --bg-to: #fdd6c8;
       --ink: #161616;
+      --muted: rgba(22, 22, 22, 0.45);
+      /* particle colours: r,g,b */
+      --orb-a: 150, 146, 148;
+      --orb-b: 236, 140, 120;
+      --swarm: 226, 122, 100;
       --gutter: clamp(24px, 5.5vw, 64px);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg-from: #07080d;
+        --bg-mid: #141020;
+        --bg-to: #3a1c2c;
+        --ink: #f1e6e1;
+        --muted: rgba(241, 230, 225, 0.45);
+        --orb-a: 196, 190, 222;
+        --orb-b: 255, 170, 148;
+        --swarm: 255, 184, 160;
+      }
+    }
+
+    :root[data-theme="dark"] {
+      --bg-from: #07080d;
+      --bg-mid: #141020;
+      --bg-to: #3a1c2c;
+      --ink: #f1e6e1;
+      --muted: rgba(241, 230, 225, 0.45);
+      --orb-a: 196, 190, 222;
+      --orb-b: 255, 170, 148;
+      --swarm: 255, 184, 160;
     }
 
     * { box-sizing: border-box; }
@@ -27,6 +64,7 @@
       color: var(--ink);
       font-family: "Newsreader", Georgia, "Times New Roman", serif;
       overflow: hidden;
+      transition: color .6s ease;
     }
 
     main {
@@ -52,9 +90,9 @@
 
     .orb {
       position: absolute;
-      right: calc(var(--gutter) - 12px);
-      bottom: calc(var(--gutter) - 12px);
-      width: clamp(96px, 13vw, 160px);
+      right: calc(var(--gutter) - 24px);
+      bottom: calc(var(--gutter) - 24px);
+      width: clamp(120px, 15vw, 190px);
       aspect-ratio: 1;
       padding: 0;
       border: 0;
@@ -63,153 +101,240 @@
       border-radius: 50%;
       opacity: 0;
       animation: fade 1.8s ease .5s forwards;
-      transition: transform .6s cubic-bezier(.2,.7,.2,1);
     }
 
-    .orb:hover { transform: scale(1.04); }
-    .orb:focus-visible { outline: 1px solid rgba(0,0,0,.25); outline-offset: 6px; }
-
+    .orb:focus-visible { outline: 1px solid var(--muted); outline-offset: 2px; }
     .orb canvas { width: 100%; height: 100%; display: block; }
+
+    .theme-toggle {
+      position: absolute;
+      top: var(--gutter);
+      right: var(--gutter);
+      padding: 4px 0;
+      border: 0;
+      background: none;
+      color: var(--muted);
+      font: italic 400 1rem/1 "Newsreader", Georgia, serif;
+      cursor: pointer;
+      opacity: 0;
+      animation: fade 1.8s ease .9s forwards;
+      transition: color .3s ease;
+    }
+    .theme-toggle:hover, .theme-toggle:focus-visible { color: var(--ink); outline: none; }
+
+    #swarm {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 10;
+    }
 
     @keyframes rise { to { opacity: 1; transform: none; } }
     @keyframes fade { to { opacity: 1; } }
 
     @media (prefers-reduced-motion: reduce) {
-      .name, .orb { animation: none; opacity: 1; transform: none; }
+      .name, .orb, .theme-toggle { animation: none; opacity: 1; transform: none; }
+      #swarm { display: none; }
     }
   </style>
 </head>
 <body>
   <main>
+    <button class="theme-toggle" id="theme-toggle" type="button"></button>
     <h1 class="name">Teo Tze Shuen</h1>
     <button class="orb" id="orb" type="button" aria-label="View my work">
       <canvas id="orb-canvas"></canvas>
     </button>
   </main>
+  <canvas id="swarm" aria-hidden="true"></canvas>
 
   <script>
   (() => {
-    const canvas = document.getElementById('orb-canvas');
-    const ctx = canvas.getContext('2d');
+    const root = document.documentElement;
     const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const darkQuery = matchMedia('(prefers-color-scheme: dark)');
 
-    // --- Build a low-poly sphere: icosahedron, subdivided once, slightly jittered ---
-    const t = (1 + Math.sqrt(5)) / 2;
-    let verts = [
-      [-1, t, 0], [1, t, 0], [-1, -t, 0], [1, -t, 0],
-      [0, -1, t], [0, 1, t], [0, -1, -t], [0, 1, -t],
-      [t, 0, -1], [t, 0, 1], [-t, 0, -1], [-t, 0, 1]
-    ];
-    let faces = [
-      [0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],
-      [1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],
-      [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],
-      [4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1]
-    ];
-
-    const norm = v => { const l = Math.hypot(v[0], v[1], v[2]); return [v[0]/l, v[1]/l, v[2]/l]; };
-    verts = verts.map(norm);
-
-    const cache = new Map();
-    const midpoint = (a, b) => {
-      const key = a < b ? a + '_' + b : b + '_' + a;
-      if (cache.has(key)) return cache.get(key);
-      const va = verts[a], vb = verts[b];
-      verts.push(norm([(va[0]+vb[0])/2, (va[1]+vb[1])/2, (va[2]+vb[2])/2]));
-      cache.set(key, verts.length - 1);
-      return verts.length - 1;
+    // ---------- Theme ----------
+    const toggle = document.getElementById('theme-toggle');
+    const isDark = () => root.dataset.theme ? root.dataset.theme === 'dark' : darkQuery.matches;
+    let colors = {};
+    const readColors = () => {
+      const cs = getComputedStyle(root);
+      const rgb = n => cs.getPropertyValue(n).split(',').map(Number);
+      colors = { a: rgb('--orb-a'), b: rgb('--orb-b'), swarm: rgb('--swarm'), dark: isDark() };
+      toggle.textContent = colors.dark ? 'light' : 'dark';
+      toggle.setAttribute('aria-label', 'Switch to ' + toggle.textContent + ' mode');
     };
-    faces = faces.flatMap(([a, b, c]) => {
-      const ab = midpoint(a, b), bc = midpoint(b, c), ca = midpoint(c, a);
-      return [[a, ab, ca], [b, bc, ab], [c, ca, bc], [ab, bc, ca]];
+    toggle.addEventListener('click', () => {
+      root.dataset.theme = isDark() ? 'light' : 'dark';
+      try { localStorage.setItem('theme', root.dataset.theme); } catch (e) {}
+      readColors();
     });
+    darkQuery.addEventListener('change', readColors);
+    readColors();
 
-    // Deterministic jitter so the facets feel hand-cut rather than perfect.
-    let seed = 7;
+    // ---------- Particle orb ----------
+    const orbBtn = document.getElementById('orb');
+    const orbCanvas = document.getElementById('orb-canvas');
+    const octx = orbCanvas.getContext('2d');
+
+    let seed = 11;
     const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-    verts = verts.map(v => { const r = 1 + (rand() - 0.5) * 0.09; return [v[0]*r, v[1]*r, v[2]*r]; });
 
-    // --- Rendering ---
-    const light = norm([-0.5, 0.7, 0.9]);
-    const warmDir = norm([0.6, -0.5, 0.6]);
-    const grey = [196, 194, 194];
-    const peach = [244, 166, 150];
-
-    let size = 0, dpr = 1;
-    const resize = () => {
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
-      size = canvas.clientWidth;
-      canvas.width = canvas.height = Math.round(size * dpr);
-    };
-    resize();
-    new ResizeObserver(resize).observe(canvas);
-
-    const tilt = 0.38;               // axial tilt (radians)
-    const cosT = Math.cos(tilt), sinT = Math.sin(tilt);
-    let angle = 0.6, speed = 0.0035, boost = 0;
-
-    const project = (v, ca, sa) => {
-      // spin around Y, then tilt around Z
-      const x = v[0]*ca + v[2]*sa;
-      const z = -v[0]*sa + v[2]*ca;
-      const y = v[1];
-      return [x*cosT - y*sinT, x*sinT + y*cosT, z];
-    };
-
-    function draw() {
-      const w = canvas.width;
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.clearRect(0, 0, w, w);
-
-      const ca = Math.cos(angle), sa = Math.sin(angle);
-      const p = verts.map(v => project(v, ca, sa));
-      const r = w * 0.46;
-      const cx = w / 2, cy = w / 2;
-
-      const tris = [];
-      for (const [a, b, c] of faces) {
-        const A = p[a], B = p[b], C = p[c];
-        const u = [B[0]-A[0], B[1]-A[1], B[2]-A[2]];
-        const v = [C[0]-A[0], C[1]-A[1], C[2]-A[2]];
-        const n = norm([u[1]*v[2]-u[2]*v[1], u[2]*v[0]-u[0]*v[2], u[0]*v[1]-u[1]*v[0]]);
-        if (n[2] <= 0) continue; // back-face cull
-        tris.push({ A, B, C, n, z: (A[2]+B[2]+C[2]) / 3 });
-      }
-      tris.sort((m, k) => m.z - k.z);
-
-      for (const { A, B, C, n } of tris) {
-        const lambert = Math.max(0, n[0]*light[0] + n[1]*light[1] + n[2]*light[2]);
-        const warm = Math.pow(Math.max(0, n[0]*warmDir[0] + n[1]*warmDir[1] + n[2]*warmDir[2]), 1.6);
-        const shade = 0.82 + lambert * 0.22;
-        const col = grey.map((g, i) => Math.min(255, Math.round((g + (peach[i] - g) * warm * 0.85) * shade)));
-        ctx.fillStyle = `rgba(${col[0]},${col[1]},${col[2]},0.8)`;
-        ctx.strokeStyle = ctx.fillStyle;
-        ctx.lineWidth = 0.6 * dpr;
-        ctx.beginPath();
-        // screen y is flipped (up = negative)
-        ctx.moveTo(cx + A[0]*r, cy - A[1]*r);
-        ctx.lineTo(cx + B[0]*r, cy - B[1]*r);
-        ctx.lineTo(cx + C[0]*r, cy - C[1]*r);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-      }
+    // Fibonacci sphere with a little radial scatter so it reads as a cloud, not a grid.
+    const N = 520;
+    const golden = Math.PI * (3 - Math.sqrt(5));
+    const pts = [];
+    for (let i = 0; i < N; i++) {
+      const y = 1 - (i / (N - 1)) * 2;
+      const rr = Math.sqrt(1 - y * y);
+      const th = i * golden;
+      const r = 1 + (rand() - 0.5) * 0.12;
+      pts.push({
+        x: Math.cos(th) * rr * r, y: y * r, z: Math.sin(th) * rr * r,
+        s: 0.6 + rand() * 0.8,        // size factor
+        ph: rand() * Math.PI * 2       // twinkle phase
+      });
     }
 
-    function loop() {
+    let dpr = 1, ow = 0;
+    const sizeOrb = () => {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      ow = Math.round(orbCanvas.clientWidth * dpr);
+      orbCanvas.width = orbCanvas.height = ow;
+    };
+    sizeOrb();
+    new ResizeObserver(sizeOrb).observe(orbCanvas);
+
+    const tilt = 0.38, cosT = Math.cos(tilt), sinT = Math.sin(tilt);
+    let angle = 0.6, boost = 0, spread = 1, spreadTarget = 1, hover = 0;
+    orbBtn.addEventListener('pointerenter', () => { hover = 1; });
+    orbBtn.addEventListener('pointerleave', () => { hover = 0; });
+
+    function drawOrb(time) {
+      octx.clearRect(0, 0, ow, ow);
+      const ca = Math.cos(angle), sa = Math.sin(angle);
+      const R = ow * 0.36 * spread;
+      const c = ow / 2;
+      const { a, b, dark } = colors;
+      octx.globalCompositeOperation = dark ? 'lighter' : 'source-over';
+
+      for (const p of pts) {
+        // spin around Y, tilt around Z
+        const x0 = p.x * ca + p.z * sa;
+        const z = -p.x * sa + p.z * ca;
+        const x = x0 * cosT - p.y * sinT;
+        const y = x0 * sinT + p.y * cosT;
+
+        const depth = (z + 1) / 2;                  // 0 back .. 1 front
+        const warm = Math.max(0, (x - y) * 0.5 + 0.35); // warmer toward bottom-right
+        const mix = Math.min(1, warm);
+        const col = a.map((v, i) => Math.round(v + (b[i] - v) * mix));
+        const tw = 0.85 + 0.15 * Math.sin(time * 0.002 + p.ph);
+        const alpha = (0.18 + depth * 0.72) * tw;
+        const size = (0.7 + depth * 1.3) * p.s * dpr * (ow / (150 * dpr)) ;
+
+        octx.fillStyle = `rgba(${col[0]},${col[1]},${col[2]},${alpha.toFixed(3)})`;
+        octx.beginPath();
+        octx.arc(c + x * R, c - y * R, Math.max(0.5, size), 0, Math.PI * 2);
+        octx.fill();
+      }
+      octx.globalCompositeOperation = 'source-over';
+    }
+
+    // Placeholder: will flow into the list of work later.
+    orbBtn.addEventListener('click', () => {
+      boost = 0.1;
+      spread = 1.35;
+      if (reduceMotion) { angle += 0.4; drawOrb(0); }
+    });
+
+    // ---------- Cursor swarm ----------
+    const sw = document.getElementById('swarm');
+    const sctx = sw.getContext('2d');
+    let sdpr = 1;
+    const sizeSwarm = () => {
+      sdpr = Math.min(window.devicePixelRatio || 1, 2);
+      sw.width = Math.round(innerWidth * sdpr);
+      sw.height = Math.round(innerHeight * sdpr);
+    };
+    sizeSwarm();
+    addEventListener('resize', sizeSwarm);
+
+    const mouse = { x: innerWidth * 0.5, y: innerHeight * 0.5, active: false, lastMove: 0, speed: 0 };
+    let presence = 0; // fades the swarm in/out
+    addEventListener('pointermove', e => {
+      if (e.pointerType === 'touch') return;
+      const dx = e.clientX - mouse.x, dy = e.clientY - mouse.y;
+      mouse.speed = Math.min(60, Math.hypot(dx, dy));
+      mouse.x = e.clientX; mouse.y = e.clientY;
+      if (!mouse.active) swarm.forEach(p => { p.x = mouse.x; p.y = mouse.y; });
+      mouse.active = true;
+      mouse.lastMove = performance.now();
+    });
+    document.addEventListener('pointerleave', () => { mouse.active = false; });
+    addEventListener('blur', () => { mouse.active = false; });
+
+    const SWARM_N = matchMedia('(pointer: fine)').matches ? 70 : 0;
+    const swarm = Array.from({ length: SWARM_N }, () => ({
+      x: mouse.x, y: mouse.y, vx: 0, vy: 0,
+      orbit: 10 + Math.random() * 34,
+      ang: Math.random() * Math.PI * 2,
+      spin: (Math.random() < 0.5 ? -1 : 1) * (0.008 + Math.random() * 0.025),
+      k: 0.012 + Math.random() * 0.03,     // spring stiffness: low = lazy trailers
+      damp: 0.86 + Math.random() * 0.08,
+      size: 0.6 + Math.random() * 1.4,
+      wob: Math.random() * Math.PI * 2
+    }));
+
+    function drawSwarm(time) {
+      presence += ((mouse.active ? 1 : 0) - presence) * 0.06;
+      mouse.speed *= 0.92;
+      sctx.setTransform(1, 0, 0, 1, 0, 0);
+      sctx.clearRect(0, 0, sw.width, sw.height);
+      if (presence < 0.01) return;
+
+      const idle = Math.min(1, (performance.now() - mouse.lastMove) / 1500);
+      const { swarm: col, dark } = colors;
+      sctx.globalCompositeOperation = dark ? 'lighter' : 'source-over';
+      sctx.setTransform(sdpr, 0, 0, sdpr, 0, 0);
+
+      for (const p of swarm) {
+        p.ang += p.spin * (1 + idle * 0.6);
+        p.wob += 0.02;
+        // orbit loosens when the cursor rests, tightens into a stream when it moves
+        const radius = p.orbit * (0.55 + idle * 0.65 + Math.sin(p.wob) * 0.15) + mouse.speed * 0.3;
+        const tx = mouse.x + Math.cos(p.ang) * radius;
+        const ty = mouse.y + Math.sin(p.ang) * radius;
+        p.vx = (p.vx + (tx - p.x) * p.k) * p.damp;
+        p.vy = (p.vy + (ty - p.y) * p.k) * p.damp;
+        p.x += p.vx; p.y += p.vy;
+
+        const v = Math.min(1, Math.hypot(p.vx, p.vy) / 12);
+        const alpha = (dark ? 0.6 : 0.85) * presence * (0.6 + v * 0.4);
+        sctx.fillStyle = `rgba(${col[0]},${col[1]},${col[2]},${alpha.toFixed(3)})`;
+        sctx.beginPath();
+        sctx.arc(p.x, p.y, p.size * (1 + v * 0.4), 0, Math.PI * 2);
+        sctx.fill();
+      }
+      sctx.globalCompositeOperation = 'source-over';
+    }
+
+    // ---------- Loop ----------
+    function loop(time) {
       boost *= 0.96;
-      angle += speed + boost;
-      draw();
+      spreadTarget = 1 + hover * 0.06;
+      spread += (spreadTarget - spread) * 0.06;
+      angle += 0.004 + boost;
+      drawOrb(time);
+      if (SWARM_N) drawSwarm(time);
       requestAnimationFrame(loop);
     }
 
-    if (reduceMotion) draw(); else requestAnimationFrame(loop);
-
-    // Placeholder: will open the list of work later.
-    document.getElementById('orb').addEventListener('click', () => {
-      boost = 0.12;
-      if (reduceMotion) { angle += 0.4; draw(); }
-    });
+    if (reduceMotion) drawOrb(0);
+    else requestAnimationFrame(loop);
   })();
   </script>
 </body>
