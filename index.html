@@ -1,121 +1,216 @@
 <!doctype html>
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<title>Simple Link Page</title>
-		<style>
-			:root {
-				--bg: #f6f4ef;
-				--text: #1b1b1b;
-				--accent: #1f4b3f;
-				--card: #ffffff;
-				--shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-			}
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Teo Tze Shuen</title>
+  <meta name="description" content="Teo Tze Shuen" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@1,6..72,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-from: #ffffff;
+      --bg-mid: #fff1ec;
+      --bg-to: #fdd6c8;
+      --ink: #161616;
+      --gutter: clamp(24px, 5.5vw, 64px);
+    }
 
-			* {
-				box-sizing: border-box;
-			}
+    * { box-sizing: border-box; }
 
-			body {
-				margin: 0;
-				font-family: "Georgia", "Times New Roman", serif;
-				color: var(--text);
-				background:
-					radial-gradient(circle at 10% 10%, #efe8dc 0, transparent 50%),
-					radial-gradient(circle at 90% 20%, #e3efe9 0, transparent 45%),
-					var(--bg);
-			}
+    html, body { height: 100%; margin: 0; }
 
-			.page {
-				min-height: 100vh;
-				display: grid;
-				place-items: center;
-				padding: 48px 20px;
-			}
+    body {
+      background: linear-gradient(125deg, var(--bg-from) 0%, var(--bg-mid) 55%, var(--bg-to) 100%);
+      background-attachment: fixed;
+      color: var(--ink);
+      font-family: "Newsreader", Georgia, "Times New Roman", serif;
+      overflow: hidden;
+    }
 
-			.card {
-				width: min(900px, 100%);
-				background: var(--card);
-				border-radius: 20px;
-				padding: 40px 32px;
-				box-shadow: var(--shadow);
-			}
+    main {
+      position: relative;
+      height: 100vh;
+      height: 100svh;
+    }
 
-			header {
-				display: flex;
-				flex-direction: column;
-				gap: 8px;
-				margin-bottom: 28px;
-			}
+    .name {
+      position: absolute;
+      left: var(--gutter);
+      bottom: var(--gutter);
+      margin: 0;
+      font-style: italic;
+      font-weight: 400;
+      font-size: clamp(1.6rem, 3vw, 2.4rem);
+      line-height: 1.2;
+      letter-spacing: 0.005em;
+      opacity: 0;
+      transform: translateY(6px);
+      animation: rise 1.4s cubic-bezier(.2,.7,.2,1) .2s forwards;
+    }
 
-			h1 {
-				margin: 0;
-				font-size: 2.2rem;
-				letter-spacing: 0.02em;
-			}
+    .orb {
+      position: absolute;
+      right: calc(var(--gutter) - 12px);
+      bottom: calc(var(--gutter) - 12px);
+      width: clamp(96px, 13vw, 160px);
+      aspect-ratio: 1;
+      padding: 0;
+      border: 0;
+      background: none;
+      cursor: pointer;
+      border-radius: 50%;
+      opacity: 0;
+      animation: fade 1.8s ease .5s forwards;
+      transition: transform .6s cubic-bezier(.2,.7,.2,1);
+    }
 
-			p {
-				margin: 0;
-				opacity: 0.75;
-			}
+    .orb:hover { transform: scale(1.04); }
+    .orb:focus-visible { outline: 1px solid rgba(0,0,0,.25); outline-offset: 6px; }
 
-			.links {
-				display: grid;
-				grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-				gap: 16px;
-			}
+    .orb canvas { width: 100%; height: 100%; display: block; }
 
-			.link-slot {
-				border: 2px dashed #c6c1b7;
-				border-radius: 14px;
-				padding: 18px;
-				min-height: 88px;
-				display: grid;
-				align-content: center;
-				gap: 6px;
-			}
+    @keyframes rise { to { opacity: 1; transform: none; } }
+    @keyframes fade { to { opacity: 1; } }
 
-			.link-slot a {
-				color: var(--accent);
-				text-decoration: none;
-				font-weight: 700;
-			}
+    @media (prefers-reduced-motion: reduce) {
+      .name, .orb { animation: none; opacity: 1; transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1 class="name">Teo Tze Shuen</h1>
+    <button class="orb" id="orb" type="button" aria-label="View my work">
+      <canvas id="orb-canvas"></canvas>
+    </button>
+  </main>
 
-			.hint {
-				font-size: 0.9rem;
-				opacity: 0.6;
-			}
+  <script>
+  (() => {
+    const canvas = document.getElementById('orb-canvas');
+    const ctx = canvas.getContext('2d');
+    const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-			@media (max-width: 600px) {
-				.card {
-					padding: 28px 20px;
-				}
-			}
-		</style>
-	</head>
-	<body>
-		<main class="page">
-			<section class="card">
-				<header>
-					<h1>Links</h1>
-				</header>
+    // --- Build a low-poly sphere: icosahedron, subdivided once, slightly jittered ---
+    const t = (1 + Math.sqrt(5)) / 2;
+    let verts = [
+      [-1, t, 0], [1, t, 0], [-1, -t, 0], [1, -t, 0],
+      [0, -1, t], [0, 1, t], [0, -1, -t], [0, 1, -t],
+      [t, 0, -1], [t, 0, 1], [-t, 0, -1], [-t, 0, 1]
+    ];
+    let faces = [
+      [0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],
+      [1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],
+      [3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],
+      [4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1]
+    ];
 
-				<div class="links">
-					<div class="link-slot">
-						<a href="https://github.com/TeoTzeShuen/WiZ-Menu-Bar">Wiz Menu Bar</a>
-						<div class="hint">Swift Project to control WiZ-Enabled lightbulbs via udp broadcasts</div>
-					</div>
-					<div class="link-slot">
-						<a href="https://github.com/TeoTzeShuen/PodScrolling">PodScrolling</a>
-						<div class="hint">Control MacOS scrolling behavior via the Airpods Motion API and acessibility features on MacOS</div>
-					</div>
-					<div class="link-slot">
-						<a href="https://teotzeshuen.github.io/third-space/">Between Us</a>
-						<div class="hint">Small HTML virtual project conversion of UDE:2222 physical project</div>
-                    </div>
-				</div>
-			</section>
-		</main>
-	</body>
+    const norm = v => { const l = Math.hypot(v[0], v[1], v[2]); return [v[0]/l, v[1]/l, v[2]/l]; };
+    verts = verts.map(norm);
+
+    const cache = new Map();
+    const midpoint = (a, b) => {
+      const key = a < b ? a + '_' + b : b + '_' + a;
+      if (cache.has(key)) return cache.get(key);
+      const va = verts[a], vb = verts[b];
+      verts.push(norm([(va[0]+vb[0])/2, (va[1]+vb[1])/2, (va[2]+vb[2])/2]));
+      cache.set(key, verts.length - 1);
+      return verts.length - 1;
+    };
+    faces = faces.flatMap(([a, b, c]) => {
+      const ab = midpoint(a, b), bc = midpoint(b, c), ca = midpoint(c, a);
+      return [[a, ab, ca], [b, bc, ab], [c, ca, bc], [ab, bc, ca]];
+    });
+
+    // Deterministic jitter so the facets feel hand-cut rather than perfect.
+    let seed = 7;
+    const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    verts = verts.map(v => { const r = 1 + (rand() - 0.5) * 0.09; return [v[0]*r, v[1]*r, v[2]*r]; });
+
+    // --- Rendering ---
+    const light = norm([-0.5, 0.7, 0.9]);
+    const warmDir = norm([0.6, -0.5, 0.6]);
+    const grey = [196, 194, 194];
+    const peach = [244, 166, 150];
+
+    let size = 0, dpr = 1;
+    const resize = () => {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      size = canvas.clientWidth;
+      canvas.width = canvas.height = Math.round(size * dpr);
+    };
+    resize();
+    new ResizeObserver(resize).observe(canvas);
+
+    const tilt = 0.38;               // axial tilt (radians)
+    const cosT = Math.cos(tilt), sinT = Math.sin(tilt);
+    let angle = 0.6, speed = 0.0035, boost = 0;
+
+    const project = (v, ca, sa) => {
+      // spin around Y, then tilt around Z
+      const x = v[0]*ca + v[2]*sa;
+      const z = -v[0]*sa + v[2]*ca;
+      const y = v[1];
+      return [x*cosT - y*sinT, x*sinT + y*cosT, z];
+    };
+
+    function draw() {
+      const w = canvas.width;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, w, w);
+
+      const ca = Math.cos(angle), sa = Math.sin(angle);
+      const p = verts.map(v => project(v, ca, sa));
+      const r = w * 0.46;
+      const cx = w / 2, cy = w / 2;
+
+      const tris = [];
+      for (const [a, b, c] of faces) {
+        const A = p[a], B = p[b], C = p[c];
+        const u = [B[0]-A[0], B[1]-A[1], B[2]-A[2]];
+        const v = [C[0]-A[0], C[1]-A[1], C[2]-A[2]];
+        const n = norm([u[1]*v[2]-u[2]*v[1], u[2]*v[0]-u[0]*v[2], u[0]*v[1]-u[1]*v[0]]);
+        if (n[2] <= 0) continue; // back-face cull
+        tris.push({ A, B, C, n, z: (A[2]+B[2]+C[2]) / 3 });
+      }
+      tris.sort((m, k) => m.z - k.z);
+
+      for (const { A, B, C, n } of tris) {
+        const lambert = Math.max(0, n[0]*light[0] + n[1]*light[1] + n[2]*light[2]);
+        const warm = Math.pow(Math.max(0, n[0]*warmDir[0] + n[1]*warmDir[1] + n[2]*warmDir[2]), 1.6);
+        const shade = 0.82 + lambert * 0.22;
+        const col = grey.map((g, i) => Math.min(255, Math.round((g + (peach[i] - g) * warm * 0.85) * shade)));
+        ctx.fillStyle = `rgba(${col[0]},${col[1]},${col[2]},0.8)`;
+        ctx.strokeStyle = ctx.fillStyle;
+        ctx.lineWidth = 0.6 * dpr;
+        ctx.beginPath();
+        // screen y is flipped (up = negative)
+        ctx.moveTo(cx + A[0]*r, cy - A[1]*r);
+        ctx.lineTo(cx + B[0]*r, cy - B[1]*r);
+        ctx.lineTo(cx + C[0]*r, cy - C[1]*r);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      }
+    }
+
+    function loop() {
+      boost *= 0.96;
+      angle += speed + boost;
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    if (reduceMotion) draw(); else requestAnimationFrame(loop);
+
+    // Placeholder: will open the list of work later.
+    document.getElementById('orb').addEventListener('click', () => {
+      boost = 0.12;
+      if (reduceMotion) { angle += 0.4; draw(); }
+    });
+  })();
+  </script>
+</body>
 </html>
