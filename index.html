@@ -277,21 +277,21 @@
     document.addEventListener('pointerleave', () => { mouse.active = false; });
     addEventListener('blur', () => { mouse.active = false; });
 
-    const SWARM_N = matchMedia('(pointer: fine)').matches ? 70 : 0;
+    const SWARM_N = matchMedia('(pointer: fine)').matches ? 40 : 0;
     const swarm = Array.from({ length: SWARM_N }, () => ({
       x: mouse.x, y: mouse.y, vx: 0, vy: 0,
-      orbit: 10 + Math.random() * 34,
+      orbit: 8 + Math.random() * 22,
       ang: Math.random() * Math.PI * 2,
-      spin: (Math.random() < 0.5 ? -1 : 1) * (0.008 + Math.random() * 0.025),
-      k: 0.012 + Math.random() * 0.03,     // spring stiffness: low = lazy trailers
-      damp: 0.86 + Math.random() * 0.08,
-      size: 0.6 + Math.random() * 1.4,
+      spin: (Math.random() < 0.5 ? -1 : 1) * (0.003 + Math.random() * 0.008),
+      k: 0.006 + Math.random() * 0.012,    // spring stiffness: low = lazy trailers
+      damp: 0.8 + Math.random() * 0.06,    // heavier damping = no overshoot/whipping
+      size: 0.5 + Math.random() * 1,
       wob: Math.random() * Math.PI * 2
     }));
 
     function drawSwarm(time) {
-      presence += ((mouse.active ? 1 : 0) - presence) * 0.06;
-      mouse.speed *= 0.92;
+      presence += ((mouse.active ? 1 : 0) - presence) * 0.04;
+      mouse.speed *= 0.9;
       sctx.setTransform(1, 0, 0, 1, 0, 0);
       sctx.clearRect(0, 0, sw.width, sw.height);
       if (presence < 0.01) return;
@@ -302,21 +302,21 @@
       sctx.setTransform(sdpr, 0, 0, sdpr, 0, 0);
 
       for (const p of swarm) {
-        p.ang += p.spin * (1 + idle * 0.6);
-        p.wob += 0.02;
+        p.ang += p.spin * (1 + idle * 0.4);
+        p.wob += 0.008;
         // orbit loosens when the cursor rests, tightens into a stream when it moves
-        const radius = p.orbit * (0.55 + idle * 0.65 + Math.sin(p.wob) * 0.15) + mouse.speed * 0.3;
+        const radius = p.orbit * (0.6 + idle * 0.4 + Math.sin(p.wob) * 0.1) + mouse.speed * 0.08;
         const tx = mouse.x + Math.cos(p.ang) * radius;
         const ty = mouse.y + Math.sin(p.ang) * radius;
         p.vx = (p.vx + (tx - p.x) * p.k) * p.damp;
         p.vy = (p.vy + (ty - p.y) * p.k) * p.damp;
         p.x += p.vx; p.y += p.vy;
 
-        const v = Math.min(1, Math.hypot(p.vx, p.vy) / 12);
-        const alpha = (dark ? 0.6 : 0.85) * presence * (0.6 + v * 0.4);
+        const v = Math.min(1, Math.hypot(p.vx, p.vy) / 20);
+        const alpha = (dark ? 0.45 : 0.6) * presence * (0.75 + v * 0.25);
         sctx.fillStyle = `rgba(${col[0]},${col[1]},${col[2]},${alpha.toFixed(3)})`;
         sctx.beginPath();
-        sctx.arc(p.x, p.y, p.size * (1 + v * 0.4), 0, Math.PI * 2);
+        sctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         sctx.fill();
       }
       sctx.globalCompositeOperation = 'source-over';
