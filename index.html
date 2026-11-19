@@ -106,6 +106,51 @@
     .orb:focus-visible { outline: 1px solid var(--muted); outline-offset: 2px; }
     .orb canvas { width: 100%; height: 100%; display: block; }
 
+    .work {
+      position: absolute;
+      right: var(--gutter);
+      bottom: calc(var(--gutter) - 24px + clamp(120px, 15vw, 190px) + 8px);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .work li {
+      opacity: 0;
+      transform: translateY(14px) scale(.96);
+      transform-origin: right bottom;
+      transition: opacity .35s ease, transform .5s cubic-bezier(.2,.8,.2,1.2);
+      /* closing: top item leaves first */
+      transition-delay: calc((var(--n) - 1 - var(--i)) * 40ms);
+    }
+
+    .work.open { pointer-events: auto; }
+    .work.open li {
+      opacity: 1;
+      transform: none;
+      /* opening: bottom item (nearest the orb) appears first */
+      transition-delay: calc((var(--n) - 1 - var(--i)) * 70ms);
+    }
+
+    .work a {
+      color: var(--ink);
+      text-decoration: none;
+      font-style: italic;
+      font-size: clamp(1.1rem, 1.7vw, 1.35rem);
+      line-height: 1.2;
+      background-image: linear-gradient(currentColor, currentColor);
+      background-size: 0% 1px;
+      background-position: right bottom;
+      background-repeat: no-repeat;
+      transition: background-size .35s ease;
+    }
+    .work a:hover, .work a:focus-visible { background-size: 100% 1px; outline: none; }
+
     .theme-toggle {
       position: absolute;
       top: var(--gutter);
@@ -144,7 +189,11 @@
   <main>
     <button class="theme-toggle" id="theme-toggle" type="button"></button>
     <h1 class="name">Teo Tze Shuen</h1>
-    <button class="orb" id="orb" type="button" aria-label="View my work">
+    <ul class="work" id="work" style="--n: 2">
+      <li style="--i: 0"><a href="https://github.com/TeoTzeShuen" target="_blank" rel="noopener" tabindex="-1">GitHub</a></li>
+      <li style="--i: 1"><a href="https://teotzeshuen.github.io/melbourne-airbnb/" tabindex="-1">Melbourne</a></li>
+    </ul>
+    <button class="orb" id="orb" type="button" aria-label="View my work" aria-expanded="false" aria-controls="work">
       <canvas id="orb-canvas"></canvas>
     </button>
   </main>
@@ -244,11 +293,21 @@
       octx.globalCompositeOperation = 'source-over';
     }
 
-    // Placeholder: will flow into the list of work later.
-    orbBtn.addEventListener('click', () => {
-      boost = 0.1;
-      spread = 1.35;
-      if (reduceMotion) { angle += 0.4; drawOrb(0); }
+    // Orb toggles the stacked list of work above it.
+    const work = document.getElementById('work');
+    const links = work.querySelectorAll('a');
+    let open = false, spin = 0.004;
+    const setOpen = state => {
+      open = state;
+      work.classList.toggle('open', open);
+      orbBtn.setAttribute('aria-expanded', open);
+      links.forEach(a => a.tabIndex = open ? 0 : -1);
+      if (reduceMotion) { angle += 0.3; drawOrb(0); }
+    };
+    orbBtn.addEventListener('click', () => setOpen(!open));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && open) { setOpen(false); orbBtn.focus(); } });
+    document.addEventListener('click', e => {
+      if (open && !orbBtn.contains(e.target) && !work.contains(e.target)) setOpen(false);
     });
 
     // ---------- Cursor swarm ----------
@@ -327,7 +386,8 @@
       boost *= 0.96;
       spreadTarget = 1 + hover * 0.06;
       spread += (spreadTarget - spread) * 0.06;
-      angle += 0.004 + boost;
+      spin += ((open ? 0.009 : 0.004) - spin) * 0.04; // ease into a slightly faster spin while open
+      angle += spin + boost;
       drawOrb(time);
       if (SWARM_N) drawSwarm(time);
       requestAnimationFrame(loop);
