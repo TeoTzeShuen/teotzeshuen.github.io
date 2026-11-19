@@ -27,6 +27,10 @@
       --orb-a: 150, 146, 148;
       --orb-b: 236, 140, 120;
       --swarm: 226, 122, 100;
+      /* the other theme's gradient, shown by the toggle's peek */
+      --alt-from: #07080d;
+      --alt-mid: #141020;
+      --alt-to: #3a1c2c;
       --gutter: clamp(24px, 5.5vw, 64px);
     }
 
@@ -40,6 +44,9 @@
         --orb-a: 196, 190, 222;
         --orb-b: 255, 170, 148;
         --swarm: 255, 184, 160;
+        --alt-from: #ffffff;
+        --alt-mid: #fff1ec;
+        --alt-to: #fdd6c8;
       }
     }
 
@@ -52,9 +59,24 @@
       --orb-a: 196, 190, 222;
       --orb-b: 255, 170, 148;
       --swarm: 255, 184, 160;
+      --alt-from: #ffffff;
+      --alt-mid: #fff1ec;
+      --alt-to: #fdd6c8;
     }
 
     * { box-sizing: border-box; }
+
+    #peek {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(125deg, var(--alt-from) 0%, var(--alt-mid) 55%, var(--alt-to) 100%);
+      --r: 0px;
+      --f: 200px;
+      -webkit-mask-image: radial-gradient(circle at 100% 0%, #000 max(0px, calc(var(--r) - var(--f))), transparent var(--r));
+              mask-image: radial-gradient(circle at 100% 0%, #000 max(0px, calc(var(--r) - var(--f))), transparent var(--r));
+      visibility: hidden;
+    }
 
     html, body { height: 100%; margin: 0; }
 
@@ -186,6 +208,7 @@
   </style>
 </head>
 <body>
+  <div id="peek" aria-hidden="true"></div>
   <main>
     <button class="theme-toggle" id="theme-toggle" type="button"></button>
     <h1 class="name">Teo Tze Shuen</h1>
@@ -216,11 +239,50 @@
       toggle.textContent = colors.dark ? 'light' : 'dark';
       toggle.setAttribute('aria-label', 'Switch to ' + toggle.textContent + ' mode');
     };
-    toggle.addEventListener('click', () => {
+    const switchTheme = () => {
       root.dataset.theme = isDark() ? 'light' : 'dark';
       try { localStorage.setItem('theme', root.dataset.theme); } catch (e) {}
       readColors();
+    };
+
+    // Peek: hovering the toggle lets the other theme seep in from the top-right corner;
+    // clicking floods the rest of the page, then the theme actually switches.
+    const peek = document.getElementById('peek');
+    let peekR = 0, peekTarget = 0, peekMode = 'idle', peekArmed = true; // idle | hover | fill
+    const diag = () => Math.hypot(innerWidth, innerHeight);
+    const feather = () => diag() * 0.2;
+
+    toggle.addEventListener('pointerenter', e => {
+      if (e.pointerType === 'touch' || !peekArmed || peekMode === 'fill' || reduceMotion) return;
+      peekMode = 'hover';
+      peekTarget = diag() * 0.55;
     });
+    toggle.addEventListener('pointerleave', () => {
+      peekArmed = true;
+      if (peekMode === 'hover') { peekMode = 'idle'; peekTarget = 0; }
+    });
+    toggle.addEventListener('click', () => {
+      if (reduceMotion) { switchTheme(); return; }
+      if (peekMode === 'fill') return;
+      peekMode = 'fill';
+      peekArmed = false; // don't start peeking the old theme while still hovering
+      peekTarget = diag() + feather() + 80;
+    });
+
+    const stepPeek = () => {
+      const f = feather();
+      const k = peekMode === 'fill' ? 0.14 : peekMode === 'hover' ? 0.035 : 0.07;
+      peekR += (peekTarget - peekR) * k;
+      if (peekMode === 'fill' && peekR >= diag() + f) {
+        switchTheme();          // page underneath now matches what the peek showed
+        peekMode = 'idle';
+        peekR = peekTarget = 0;
+      }
+      if (peekR < 0.5) { peek.style.visibility = 'hidden'; return; }
+      peek.style.visibility = 'visible';
+      peek.style.setProperty('--r', peekR.toFixed(1) + 'px');
+      peek.style.setProperty('--f', f.toFixed(1) + 'px');
+    };
     darkQuery.addEventListener('change', readColors);
     readColors();
 
@@ -388,6 +450,7 @@
       spread += (spreadTarget - spread) * 0.06;
       spin += ((open ? 0.009 : 0.004) - spin) * 0.04; // ease into a slightly faster spin while open
       angle += spin + boost;
+      stepPeek();
       drawOrb(time);
       if (SWARM_N) drawSwarm(time);
       requestAnimationFrame(loop);
