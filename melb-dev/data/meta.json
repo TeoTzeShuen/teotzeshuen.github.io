@@ -1,0 +1,353 @@
+{
+ "count": 25715,
+ "columns": [
+  {
+   "name": "x",
+   "dtype": "float32",
+   "offset": 0,
+   "length": 25715
+  },
+  {
+   "name": "y",
+   "dtype": "float32",
+   "offset": 102860,
+   "length": 25715
+  },
+  {
+   "name": "drop_stage",
+   "dtype": "uint8",
+   "offset": 205720,
+   "length": 25715
+  },
+  {
+   "name": "council",
+   "dtype": "uint8",
+   "offset": 231436,
+   "length": 25715
+  },
+  {
+   "name": "room_type",
+   "dtype": "uint8",
+   "offset": 257152,
+   "length": 25715
+  },
+  {
+   "name": "price",
+   "dtype": "float32",
+   "offset": 282868,
+   "length": 25715
+  },
+  {
+   "name": "rating",
+   "dtype": "float32",
+   "offset": 385728,
+   "length": 25715
+  },
+  {
+   "name": "revenue",
+   "dtype": "float32",
+   "offset": 488588,
+   "length": 25715
+  },
+  {
+   "name": "nights",
+   "dtype": "float32",
+   "offset": 591448,
+   "length": 25715
+  },
+  {
+   "name": "reviews_ltm",
+   "dtype": "float32",
+   "offset": 694308,
+   "length": 25715
+  },
+  {
+   "name": "dist_cbd",
+   "dtype": "float32",
+   "offset": 797168,
+   "length": 25715
+  },
+  {
+   "name": "popular",
+   "dtype": "uint8",
+   "offset": 900028,
+   "length": 25715
+  },
+  {
+   "name": "superhost",
+   "dtype": "uint8",
+   "offset": 925744,
+   "length": 25715
+  },
+  {
+   "name": "bedrooms",
+   "dtype": "float32",
+   "offset": 951460,
+   "length": 25715
+  },
+  {
+   "name": "min_nights",
+   "dtype": "float32",
+   "offset": 1054320,
+   "length": 25715
+  },
+  {
+   "name": "host_listings",
+   "dtype": "float32",
+   "offset": 1157180,
+   "length": 25715
+  },
+  {
+   "name": "rand",
+   "dtype": "float32",
+   "offset": 1260040,
+   "length": 25715
+  },
+  {
+   "name": "n_reviews",
+   "dtype": "float32",
+   "offset": 1362900,
+   "length": 25715
+  },
+  {
+   "name": "sc_accuracy",
+   "dtype": "float32",
+   "offset": 1465760,
+   "length": 25715
+  },
+  {
+   "name": "sc_cleanliness",
+   "dtype": "float32",
+   "offset": 1568620,
+   "length": 25715
+  },
+  {
+   "name": "sc_checkin",
+   "dtype": "float32",
+   "offset": 1671480,
+   "length": 25715
+  },
+  {
+   "name": "sc_communication",
+   "dtype": "float32",
+   "offset": 1774340,
+   "length": 25715
+  },
+  {
+   "name": "sc_location",
+   "dtype": "float32",
+   "offset": 1877200,
+   "length": 25715
+  },
+  {
+   "name": "sc_value",
+   "dtype": "float32",
+   "offset": 1980060,
+   "length": 25715
+  },
+  {
+   "name": "is_apartment",
+   "dtype": "uint8",
+   "offset": 2082920,
+   "length": 25715
+  },
+  {
+   "name": "big_host",
+   "dtype": "uint8",
+   "offset": 2108636,
+   "length": 25715
+  },
+  {
+   "name": "dist_band",
+   "dtype": "uint8",
+   "offset": 2134352,
+   "length": 25715
+  },
+  {
+   "name": "rev_tier",
+   "dtype": "uint8",
+   "offset": 2160068,
+   "length": 25715
+  },
+  {
+   "name": "rel_price",
+   "dtype": "float32",
+   "offset": 2185784,
+   "length": 25715
+  },
+  {
+   "name": "rel_bucket",
+   "dtype": "uint8",
+   "offset": 2288644,
+   "length": 25715
+  },
+  {
+   "name": "annual_rent",
+   "dtype": "float32",
+   "offset": 2314360,
+   "length": 25715
+  },
+  {
+   "name": "rent_ratio",
+   "dtype": "float32",
+   "offset": 2417220,
+   "length": 25715
+  },
+  {
+   "name": "pred_price",
+   "dtype": "float32",
+   "offset": 2520080,
+   "length": 25715
+  },
+  {
+   "name": "is_test",
+   "dtype": "uint8",
+   "offset": 2622940,
+   "length": 25715
+  },
+  {
+   "name": "est_bucket",
+   "dtype": "uint8",
+   "offset": 2648656,
+   "length": 25715
+  },
+  {
+   "name": "km3",
+   "dtype": "uint8",
+   "offset": 2674372,
+   "length": 25715
+  },
+  {
+   "name": "km7",
+   "dtype": "uint8",
+   "offset": 2700088,
+   "length": 25715
+  },
+  {
+   "name": "dbscan",
+   "dtype": "uint8",
+   "offset": 2725804,
+   "length": 25715
+  },
+  {
+   "name": "cr_clean",
+   "dtype": "float32",
+   "offset": 2751520,
+   "length": 25715
+  },
+  {
+   "name": "cr_noise",
+   "dtype": "float32",
+   "offset": 2854380,
+   "length": 25715
+  },
+  {
+   "name": "cr_checkin",
+   "dtype": "float32",
+   "offset": 2957240,
+   "length": 25715
+  },
+  {
+   "name": "cr_accuracy",
+   "dtype": "float32",
+   "offset": 3060100,
+   "length": 25715
+  },
+  {
+   "name": "cr_comfort",
+   "dtype": "float32",
+   "offset": 3162960,
+   "length": 25715
+  },
+  {
+   "name": "cr_value",
+   "dtype": "float32",
+   "offset": 3265820,
+   "length": 25715
+  },
+  {
+   "name": "cr_any",
+   "dtype": "float32",
+   "offset": 3368680,
+   "length": 25715
+  },
+  {
+   "name": "n_scored",
+   "dtype": "float32",
+   "offset": 3471540,
+   "length": 25715
+  }
+ ],
+ "councils": [
+  "Greater Dandenong",
+  "Wyndham",
+  "Hume",
+  "Hobsons Bay",
+  "Kingston",
+  "Maribyrnong",
+  "Monash",
+  "Nillumbik",
+  "Whittlesea",
+  "Yarra",
+  "Bayside",
+  "Moonee Valley",
+  "Casey",
+  "Knox",
+  "Glen Eira",
+  "Moreland",
+  "Whitehorse",
+  "Maroondah",
+  "Manningham",
+  "Melton",
+  "Yarra Ranges",
+  "Boroondara",
+  "Stonnington",
+  "Port Phillip",
+  "Melbourne",
+  "Cardinia",
+  "Banyule",
+  "Darebin",
+  "Brimbank",
+  "Frankston"
+ ],
+ "roomTypes": [
+  "Entire home/apt",
+  "Private room",
+  "Shared room",
+  "Hotel room"
+ ],
+ "stats": {
+  "dropCounts": [
+   25715,
+   21130,
+   18327,
+   15826,
+   15667,
+   15655,
+   15463
+  ],
+  "price_p99": 1226.35,
+  "price_q": [
+   54.0,
+   266.6000061035156,
+   950.7295935058578
+  ],
+  "dist_q": [
+   0.28831479787826536,
+   4.727899551391602,
+   63.38939079284667
+  ],
+  "x_range": [
+   -42.82240622407861,
+   78.2770694693366
+  ],
+  "y_range": [
+   -50.53460341824385,
+   41.26779800820009
+  ],
+  "origin": {
+   "lat0": -37.8136,
+   "lon0": 144.9631
+  }
+ }
+}

@@ -1,0 +1,220 @@
+{
+ "model": {
+  "name": "roberta-large",
+  "params": 355000000,
+  "layers": 24,
+  "heads": 16,
+  "dim": 1024,
+  "epochs": 10
+ },
+ "training": {
+  "n": 801,
+  "llm": 790,
+  "hand": 11,
+  "checked": 80,
+  "test": 99,
+  "second": 49
+ },
+ "f1": [
+  {
+   "key": "cleanliness",
+   "name": "cleanliness",
+   "transformer": 0.9565217391304348,
+   "tfidf": 0.7659574468085106,
+   "positives": 22
+  },
+  {
+   "key": "noise",
+   "name": "noise",
+   "transformer": 0.8888888888888888,
+   "tfidf": 0.3333333333333333,
+   "positives": 4
+  },
+  {
+   "key": "comfort_amenities",
+   "name": "comfort",
+   "transformer": 0.8333333333333334,
+   "tfidf": 0.7636363636363637,
+   "positives": 25
+  },
+  {
+   "key": "accuracy",
+   "name": "accuracy",
+   "transformer": 0.8,
+   "tfidf": 0.6666666666666666,
+   "positives": 11
+  },
+  {
+   "key": "checkin_host",
+   "name": "check-in or host",
+   "transformer": 0.5714285714285714,
+   "tfidf": 0.5384615384615384,
+   "positives": 11
+  },
+  {
+   "key": "value",
+   "name": "value",
+   "transformer": 0.2857142857142857,
+   "tfidf": 0.13333333333333333,
+   "positives": 5
+  }
+ ],
+ "tone": {
+  "transformer": 0.9090909090909091,
+  "tfidf": 0.8585858585858586
+ },
+ "scored": {
+  "reviews": 571522,
+  "listings10": 9891,
+  "listings30": 5758,
+  "median_rating": 4.86
+ },
+ "avg": {
+  "any": 0.12988159363905355,
+  "comfort": 0.10664020690918048,
+  "clean": 0.028699256786853037,
+  "checkin": 0.025116020598023744,
+  "noise": 0.021913999901064858,
+  "accuracy": 0.00995502959648304
+ },
+ "spearman": {
+  "cleanliness": -0.6673733593314518,
+  "checkin": -0.6073247229356182,
+  "any": -0.7374243234291108
+ },
+ "stars": {
+  "per10": {
+   "cleanliness": -0.11442058884662462,
+   "comfort": -0.08343886888872545,
+   "checkin": -0.07030143078212289,
+   "noise": -0.03687395453534274,
+   "accuracy": -0.060317943569211364
+  },
+  "r2": 0.6454505748250273
+ },
+ "host": {
+  "bands": [
+   "1 listing",
+   "2 to 5",
+   "6 to 20",
+   "21 or more"
+  ],
+  "cleanliness": [
+   0.015651578528213785,
+   0.025458016713804873,
+   0.03902302808291261,
+   0.04445720747389664
+  ],
+  "checkin": [
+   0.011731714888129572,
+   0.019108618521902217,
+   0.03116342336395016,
+   0.04725635664303351
+  ],
+  "comfort": [
+   0.07193963097415991,
+   0.0962352091767709,
+   0.12802106523840126,
+   0.15471639969481626
+  ],
+  "noise": [
+   0.017810505772559337,
+   0.022302379126768555,
+   0.024521972599682553,
+   0.02590377213304328
+  ],
+  "accuracy": [
+   0.005553573714092751,
+   0.008628123037184804,
+   0.013103506188712198,
+   0.01574692781101615
+  ],
+  "any": [
+   0.0899700581207296,
+   0.1183179264409036,
+   0.15433213170146778,
+   0.1848699131091687
+  ],
+  "listings": [
+   3544,
+   2353,
+   1669,
+   2325
+  ],
+  "gapRaw": -0.11224812800003924,
+  "gapAdj": -0.03648329668453689,
+  "share": 0.6749763462912794
+ },
+ "cliff": [
+  {
+   "band": "0 to 5%",
+   "listings": 1258,
+   "nights": 154.37678855325913,
+   "price": 259.0,
+   "revenue": 36387.5,
+   "rating": 4.945476947535771
+  },
+  {
+   "band": "5 to 10%",
+   "listings": 1495,
+   "nights": 160.96789297658862,
+   "price": 268.5,
+   "revenue": 42024.0,
+   "rating": 4.888535117056857
+  },
+  {
+   "band": "10 to 20%",
+   "listings": 2060,
+   "nights": 154.1606796116505,
+   "price": 271.0,
+   "revenue": 39587.0,
+   "rating": 4.799199029126214
+  },
+  {
+   "band": "20 to 30%",
+   "listings": 729,
+   "nights": 122.24554183813443,
+   "price": 275.0,
+   "revenue": 29405.0,
+   "rating": 4.66039780521262
+  },
+  {
+   "band": "over 30%",
+   "listings": 216,
+   "nights": 95.91203703703704,
+   "price": 276.25,
+   "revenue": 21908.5,
+   "rating": 4.493009259259259
+  }
+ ],
+ "examples": [
+  {
+   "row": 238,
+   "text": "Prime location of where it is, walkable distance to Melbourne CBD and there's tram station downstairs. But there's rats in the stay.",
+   "flag": "cleanliness",
+   "span": "there's rats in the stay",
+   "tone": "mixed",
+   "flags": [
+    "cleanliness"
+   ]
+  },
+  {
+   "row": 22,
+   "text": "Location is fair but very noisy street and some one got drunk one night till the policeman arrived and get rescued",
+   "flag": "noise",
+   "span": "very noisy street and some one got drunk one night",
+   "tone": "mixed",
+   "flags": [
+    "noise"
+   ]
+  },
+  {
+   "row": 41,
+   "text": "The place was perfectly described. Neat, comfortable, convenient and quiet.",
+   "flag": null,
+   "span": null,
+   "tone": "positive",
+   "flags": []
+  }
+ ]
+}
