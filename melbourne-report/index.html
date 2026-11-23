@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f3efe6" />
+    <link rel="icon" href="data:," />
+    <title>ACC2125 Group 09 Report</title>
+    <script>
+      // Apply saved theme and animations mode before first paint (matches modes.js)
+      (function () {
+        var h = document.documentElement;
+        var q = new URLSearchParams(location.search);
+        var get = function (k) {
+          try {
+            return localStorage.getItem(k);
+          } catch (e) {
+            return null;
+          }
+        };
+        var th = q.get('theme') || get('melb.report.theme');
+        h.dataset.theme = th === 'dark' ? 'dark' : 'light';
+
+        var qa = q.get('animations');
+        var sa = get('melb.report.animations');
+        var anim;
+        if (qa === 'on' || qa === 'off') {
+          anim = qa;
+        } else if (sa === 'on' || sa === 'off') {
+          anim = sa;
+        } else {
+          var reduced = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+          anim = reduced ? 'off' : 'on';
+        }
+        h.dataset.animations = anim;
+      })();
+    </script>
+    <script type="module" crossorigin src="/melbourne-report/assets/index-B7O6kBAa.js"></script>
+    <link rel="stylesheet" crossorigin href="/melbourne-report/assets/index-CtxKfhwc.css">
+  </head>
+  <body>
+    <!-- Narrow-screen notice over a plain readable text view (desktop is the primary target) -->
+    <div id="narrow-banner" role="region" aria-label="Viewport notice" data-non-report>
+      <p><strong>Best viewed on a desktop screen.</strong> Showing the full readable report without interactive 3D figures.</p>
+      <button type="button" class="narrow-dismiss" aria-label="Dismiss notice">Dismiss</button>
+    </div>
+
+    <main id="app"></main>
+
+    <!-- Floating citation hover preview card (Wikipedia-style) -->
+    <div id="cite-popup" class="cite-popup" role="tooltip" hidden data-non-report>
+      <p class="cite-popup-kicker">Reference</p>
+      <p class="cite-popup-body" id="cite-popup-body"></p>
+      <a class="cite-popup-jump" id="cite-popup-jump" href="#references">Jump to References ↓</a>
+    </div>
+
+    <!-- Native modal lightbox for original report figures -->
+    <dialog id="lightbox" class="lightbox" closedby="any" aria-labelledby="lightbox-title" data-non-report>
+      <div class="lightbox-shell">
+        <header class="lightbox-head">
+          <span id="lightbox-title" class="lightbox-label">Original report figure</span>
+          <button type="button" class="lightbox-close" aria-label="Close figure" autofocus>Close · Esc</button>
+        </header>
+        <div class="lightbox-media" id="lightbox-media"></div>
+        <p class="lightbox-caption" id="lightbox-caption"></p>
+      </div>
+    </dialog>
+
+  </body>
+</html>
